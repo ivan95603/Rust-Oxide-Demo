@@ -1,0 +1,26 @@
+[package]
+name = "freertos-rust-projects"
+version = "0.1.0"
+authors = ["Ivan Palijan"]
+edition = "2018"
+description = """
+RTOS Projects
+"""
+
+[dependencies]
+freertos-rust = {path = "../freertos-rust"}
+
+[target.'cfg(target_arch = "arm")'.dependencies]
+cortex-m = "0.7.3"
+cortex-m-rt = {version = "0.7.1"}
+
+
+
+# Example: stm32-cortex-m4-blackpill
+[target.thumbv7em-none-eabihf.dependencies]
+panic-halt = "0.2.0"
+embedded-hal = { features = ["unproven"], version = "0.2.6" }
+stm32f4xx-hal = {version = "0.11.1", features = ["rt", "stm32f411"]}
+
+[build-dependencies]
+freertos-cargo-build = {path = "../freertos-cargo-build"}
