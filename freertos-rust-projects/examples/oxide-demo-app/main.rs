@@ -16,8 +16,15 @@ use cortex_m;
 use stm32f4xx_hal as hal;
 
 use crate::hal::{
+    pac, 
     pac::{Peripherals},
+    block, 
+    prelude::*, 
+    serial::config::Config, 
+    serial::Serial, serial::*
 };
+
+use core::fmt; // for pretty formatting of the serial output
 
 extern crate panic_halt; // panic handler
 
@@ -60,13 +67,56 @@ impl<D1: OutputPin> MyDevice<D1>
 #[entry]
 fn main() -> ! {
     let dp = Peripherals::take().unwrap();
+    let gpioa = dp.GPIOA.split();
     let gpioc = dp.GPIOC.split();
+
+    let rcc = dp.RCC.constrain();
+    let clocks = rcc.cfgr.use_hse(25.mhz()).freeze();
+
     let mut device = MyDevice::from_pins(gpioc.pc13.into_push_pull_output());
     device.set_led(false);
+
+
+
+    // define RX/TX pins
+    let tx_pin = gpioa.pa2.into_alternate();
+    let rx_pin = gpioa.pa3.into_alternate();
+
+    // configure serial
+    let serial = Serial::new(
+        dp.USART2,
+        (tx_pin, rx_pin),
+        Config::default().baudrate(115200.bps()),
+        &clocks,
+    )
+    .unwrap()
+
+    // Make this Serial object use u16s instead of u8s
+    .with_u8_data();
+
+    let (mut tx, mut rx) = serial.split();
+
+
+    let txt = "RTOS UART TEST\n";
+
+
+
+
+
+
+
     Task::new().name("hello").stack_size(128).priority(TaskPriority(2)).start(move |_| {
         loop{
             freertos_rust::CurrentTask::delay(Duration::ms(1000));
             device.set_led(true);
+
+
+
+            use embedded_hal::serial::Write;
+            txt.bytes()
+                .try_for_each(|c| block!(tx.write(c)));
+
+
             freertos_rust::CurrentTask::delay(Duration::ms(1000));
             device.set_led(false);
         }

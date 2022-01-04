@@ -41,35 +41,29 @@ fn main() -> ! {
     .unwrap()
 
     // Make this Serial object use u16s instead of u8s
-    .with_u16_data();
+    .with_u8_data();
 
     let (mut tx, mut rx) = serial.split();
 
-    // configure serial
-   // let mut tx = Serial::tx(dp.USART2, tx_pin, 9600.bps(), &clocks).unwrap();
-
-    let mut value: u16 = 50;
-
     loop {
-        // print some value every 500 ms, value will overflow after 255
-
-       // writeln!(tx, "value: {:02}\r", value).unwrap();
 
        let txt = "TEST\n";
 
        use embedded_hal::serial::Write;
        txt.bytes()
-           .try_for_each(|c| block!(tx.write(c as u16)))
+           .try_for_each(|c| block!(tx.write(c)))
            .map_err(|_| fmt::Error);
+
+
+
+
 
         //tx.write_str("s: &str");
 
         // write_str(&mut tx, "hola").unwrap();
-
-        // block!(tx.write(value)).unwrap();
       
        // writeln!(tx, "value: {:02}\r", value).unwrap();
-        value = value.wrapping_add(1);
+
         delay.delay_ms(500_u32);
     }
 }
