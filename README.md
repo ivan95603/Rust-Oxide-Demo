@@ -33,3 +33,14 @@
 ## Create hex file to be flashed (If you need hex for production else use step above):
 
     cargo objcopy --package freertos-rust-projects  --example oxide-demo-app --target thumbv7em-none-eabihf -- -O ihex oxide-demo-app.hex
+
+
+
+
+## Check nightly build for RLS component
+
+    cargo install lorikeet
+
+</br>
+
+    lorikeet check_rls.yml 
