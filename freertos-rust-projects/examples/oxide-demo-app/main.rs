@@ -98,7 +98,7 @@ fn main() -> ! {
     // Make this Serial object use u16s instead of u8s
     .with_u8_data();
 
-    let (mut tx, mut rx) = serial.split();
+    let (mut tx, rx) = serial.split();
 
     let txt = "RTOS UART TEST\n";
 
