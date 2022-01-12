@@ -14,6 +14,10 @@
 </br>
 </br>
 
+## Update compiler package
+
+    rustup update
+
 # Every time:
 
 ## Start OpenOCD instance in separate terminal first and connect [BlackPill Board (STM32F411CEU6)](https://www.adafruit.com/product/4877):
@@ -27,8 +31,8 @@
 ## Build the demo app:
     cargo build --package freertos-rust-projects --example oxide-demo-app --target thumbv7em-none-eabihf
 
-## Build and transfer to device:
-    cargo build --package freertos-rust-projects --example oxide-demo-app --target thumbv7em-none-eabihf
+## Transfer and run on device:
+    cargo run --package freertos-rust-projects --example oxide-demo-app --target thumbv7em-none-eabihf
 
 ## Create hex file to be flashed (If you need hex for production else use step above):
 

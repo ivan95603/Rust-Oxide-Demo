@@ -24,7 +24,7 @@ use crate::hal::{
     serial::Serial, serial::*
 };
 
-use core::fmt; // for pretty formatting of the serial output
+use core::fmt::{Error, Write}; // for pretty formatting of the serial output
 
 extern crate panic_halt; // panic handler
 
@@ -64,6 +64,12 @@ impl<D1: OutputPin> MyDevice<D1>
     }
 }
 
+
+fn serial_writer<W: Write>(f: &mut W, s: &str) -> Result<(), Error> {
+    f.write_str(s)
+}
+
+
 #[entry]
 fn main() -> ! {
     let dp = Peripherals::take().unwrap();
@@ -75,8 +81,6 @@ fn main() -> ! {
 
     let mut device = MyDevice::from_pins(gpioc.pc13.into_push_pull_output());
     device.set_led(false);
-
-
 
     // define RX/TX pins
     let tx_pin = gpioa.pa2.into_alternate();
@@ -96,26 +100,14 @@ fn main() -> ! {
 
     let (mut tx, mut rx) = serial.split();
 
-
     let txt = "RTOS UART TEST\n";
 
-
-
-
-
-
-
-    Task::new().name("hello").stack_size(128).priority(TaskPriority(2)).start(move |_| {
+    Task::new().name("hello").stack_size(512).priority(TaskPriority(2)).start(move |_| {
         loop{
             freertos_rust::CurrentTask::delay(Duration::ms(1000));
             device.set_led(true);
 
-
-
-            use embedded_hal::serial::Write;
-            txt.bytes()
-                .try_for_each(|c| block!(tx.write(c)));
-
+            serial_writer(&mut tx, &txt).unwrap();
 
             freertos_rust::CurrentTask::delay(Duration::ms(1000));
             device.set_led(false);
@@ -149,7 +141,7 @@ unsafe fn HardFault(_ef: &ExceptionFrame) -> ! {
 // define what happens in an Out Of Memory (OOM) condition
 #[alloc_error_handler]
 fn alloc_error(_layout: Layout) -> ! {
-    //set_led(true);
+    // set_led(true);
     asm::bkpt();
     loop {}
 }
