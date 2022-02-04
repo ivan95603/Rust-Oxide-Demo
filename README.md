@@ -26,10 +26,19 @@
 </br>
 </br>
 
+# Board docs
+[BlackPill Board (STM32F411CEU6) pinout](https://miro.medium.com/max/2000/1*ixFS8iYk_uO_nWkH0w6jFA.png)
+
+</br>
+</br>
+
 # How to:
 
 ## Build the demo app:
     cargo build --package freertos-rust-projects --example oxide-demo-app --target thumbv7em-none-eabihf
+
+## Clear the demo app binaries:
+    cargo clean --package freertos-rust-projects
 
 ## Transfer and run on device:
     cargo run --package freertos-rust-projects --example oxide-demo-app --target thumbv7em-none-eabihf

@@ -11,8 +11,9 @@ RTOS Projects
 freertos-rust = {path = "../freertos-rust"}
 
 [target.'cfg(target_arch = "arm")'.dependencies]
-cortex-m = "0.7.3"
+cortex-m = "0.7.4"
 cortex-m-rt = {version = "0.7.1"}
+stm32f4 = "0.14.0"
 
 
 
@@ -21,6 +22,11 @@ cortex-m-rt = {version = "0.7.1"}
 panic-halt = "0.2.0"
 embedded-hal = { features = ["unproven"], version = "0.2.6" }
 stm32f4xx-hal = {version = "0.11.1", features = ["rt", "stm32f411"]}
+mlx9061x = "0.2.0"
+shared-bus = { version = "0.2.2", features=["cortex-m"]}
+
+
+rtt-target = { version =  "0.3.1", features = ["cortex-m"] }
 
 [build-dependencies]
 freertos-cargo-build = {path = "../freertos-cargo-build"}
