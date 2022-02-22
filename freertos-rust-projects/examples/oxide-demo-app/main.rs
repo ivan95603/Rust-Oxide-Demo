@@ -4,7 +4,7 @@
 #![feature(lang_items)]
 #![feature(alloc_error_handler)]
 
-use alloc::string::ToString;
+use alloc::{string::ToString, boxed::Box};
 use cortex_m::{asm, delay::Delay};
 use cortex_m_rt::{exception, entry, ExceptionFrame};
 use embedded_hal::digital::v2::OutputPin;
@@ -18,6 +18,9 @@ use cortex_m;
 use stm32f4::stm32f411::I2C1;
 
 use stm32f4xx_hal as hal;
+
+use bmp180_nostd as bmp180;
+
 
 use crate::hal::{
     pac, 
@@ -145,34 +148,61 @@ fn main() -> ! {
     // shared with other threads.
     let bus: &'static _ = shared_bus::new_cortexm!(I2C1Bus = i2c).unwrap();
 
+
+
+    let mut boxy = Box::new(Box::new(&mut delayObj));
+
+
+
+
+
+
+    
+
+    // let mut barometer = bmp180::BMP180BarometerThermometer::new(bus.acquire_i2c(), &mut boxy, bmp180::BMP180PressureMode::BMP180Standard);
+
+
+
+
+
     let mut sensor = Mlx9061x::new_mlx90614(bus.acquire_i2c(), SlaveAddr::Alternative(0x5A), 5).unwrap();
 
-    delayObj.delay_ms(100 as u32);
+
+
+
+
+
+
+    // delayObj.delay_ms(100 as u32);
 
 ////////////////////////////
 
     let mut txt_buff = "RTOS UART TEST\n";
 
-    Task::new().name("hello").stack_size(512).priority(TaskPriority(2)).start(move |_| {
+    Task::new().name("hello").stack_size(1024).priority(TaskPriority(2)).start(move |_| {
         loop{
-            freertos_rust::CurrentTask::delay(Duration::ms(1000));
+            freertos_rust::CurrentTask::delay(Duration::ms(100));
             device.set_led(true);
 
-
+            // let pressure_in_pascals: f32 = barometer.pressure_pa();
 
 
             let t_obj = sensor.object1_temperature().unwrap_or(-1.0);
-            let t_a = 1.1 as f32;
             freertos_rust::CurrentTask::delay(Duration::ms(10));
             let t_a = sensor.ambient_temperature().unwrap_or(-1.0);
 
-            let text = format!("Object1 {}, Ambient {}, tst {} \n", t_obj, &t_a, 32324.323);
+            let text = format!("OT:{}\n", &t_obj);
             serial_writer(&mut tx, &text).unwrap();
-            serial_writer(&mut tx, &txt_buff).unwrap();
+            freertos_rust::CurrentTask::delay(Duration::ms(100));
+            let text = format!("AT:{}\n",&t_a);
+            serial_writer(&mut tx, &text).unwrap();
+
+            // let text = format!("P:{}\n",&pressure_in_pascals);
+            // serial_writer(&mut tx, &text).unwrap();
 
             
 
-            freertos_rust::CurrentTask::delay(Duration::ms(1000));
+            freertos_rust::CurrentTask::delay(Duration::ms(100));
             device.set_led(false);
         }
     }).unwrap();
