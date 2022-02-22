@@ -152,24 +152,12 @@ fn main() -> ! {
 
     let mut boxy = Box::new(Box::new(&mut delayObj));
 
-
-
-
-
-
+    //TODO: FIX BAROMETER!!!
     
 
     // let mut barometer = bmp180::BMP180BarometerThermometer::new(bus.acquire_i2c(), &mut boxy, bmp180::BMP180PressureMode::BMP180Standard);
 
-
-
-
-
     let mut sensor = Mlx9061x::new_mlx90614(bus.acquire_i2c(), SlaveAddr::Alternative(0x5A), 5).unwrap();
-
-
-
-
 
 
 
@@ -179,33 +167,46 @@ fn main() -> ! {
 
     let mut txt_buff = "RTOS UART TEST\n";
 
-    Task::new().name("hello").stack_size(1024).priority(TaskPriority(2)).start(move |_| {
-        loop{
-            freertos_rust::CurrentTask::delay(Duration::ms(100));
-            device.set_led(true);
+    let main_task = Task::new().name("main").start(move |_| 
+    {
 
-            // let pressure_in_pascals: f32 = barometer.pressure_pa();
+        Task::new().name("temp").priority(TaskPriority(2)).start(move |_| {
+            loop{
+
+                // let pressure_in_pascals: f32 = barometer.pressure_pa();
 
 
-            let t_obj = sensor.object1_temperature().unwrap_or(-1.0);
-            freertos_rust::CurrentTask::delay(Duration::ms(10));
-            let t_a = sensor.ambient_temperature().unwrap_or(-1.0);
+                let t_obj = sensor.object1_temperature().unwrap_or(-1.0);
+                freertos_rust::CurrentTask::delay(Duration::ms(10));
+                let t_a = sensor.ambient_temperature().unwrap_or(-1.0);
 
-            let text = format!("OT:{}\n", &t_obj);
-            serial_writer(&mut tx, &text).unwrap();
-            freertos_rust::CurrentTask::delay(Duration::ms(100));
-            let text = format!("AT:{}\n",&t_a);
-            serial_writer(&mut tx, &text).unwrap();
+                let text = format!("OT:{:.2}\n", &t_obj);
+                serial_writer(&mut tx, &text).unwrap();
+                freertos_rust::CurrentTask::delay(Duration::ms(300));
+                let text = format!("AT:{:.2}\n",&t_a);
+                serial_writer(&mut tx, &text).unwrap();
 
-            // let text = format!("P:{}\n",&pressure_in_pascals);
-            // serial_writer(&mut tx, &text).unwrap();
+                // let text = format!("P:{}\n",&pressure_in_pascals);
+                // serial_writer(&mut tx, &text).unwrap();
+                freertos_rust::CurrentTask::delay(Duration::ms(300));
+ 
+            }
+        }).unwrap();
 
-            
 
-            freertos_rust::CurrentTask::delay(Duration::ms(100));
-            device.set_led(false);
-        }
+
+        Task::new().name("led").priority(TaskPriority(2)).start(move |_| {
+            loop{
+                freertos_rust::CurrentTask::delay(Duration::ms(500));
+                device.set_led(true);
+
+                freertos_rust::CurrentTask::delay(Duration::ms(500));
+                device.set_led(false);
+            }
+        }).unwrap();
+
     }).unwrap();
+
     FreeRtosUtils::start_scheduler();
 }
 

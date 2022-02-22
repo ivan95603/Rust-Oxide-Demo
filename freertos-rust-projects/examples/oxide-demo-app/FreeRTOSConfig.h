@@ -106,7 +106,7 @@ extern void vAssertCalled( unsigned long ulLine, const char * const pcFileName )
 #define configUSE_MUTEXES				1
 #define configQUEUE_REGISTRY_SIZE		5
 #define configCHECK_FOR_STACK_OVERFLOW	2
-#define configUSE_RECURSIVE_MUTEXES		0
+#define configUSE_RECURSIVE_MUTEXES		1  //WAS 0
 #define configUSE_MALLOC_FAILED_HOOK	0 //TR
 #define configUSE_APPLICATION_TASK_TAG	0
 #define configUSE_TICKLESS_IDLE			0 //max tickless period with 16MHz sysclock = ~1sek
