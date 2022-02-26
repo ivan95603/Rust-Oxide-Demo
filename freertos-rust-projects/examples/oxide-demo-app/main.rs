@@ -94,15 +94,18 @@ fn main() -> ! {
     let rcc = dp.RCC.constrain();
     let clocks = rcc
                         .cfgr
-                        .use_hse(25.mhz())
-                        .sysclk(100.mhz())
-                        .pclk1(50.mhz())
-                        .pclk2(100.mhz())
+                        .use_hse(25.MHz())
+                        .sysclk(100.MHz())
+                        .pclk1(50.MHz())
+                        .pclk2(100.MHz())
                         .freeze();  
 
-    // Create a delay abstraction based on SysTick
-    let mut delayObj = hal::delay::Delay::new(cp.SYST, &clocks);
+    // // Create a delay abstraction based on SysTick
+    // let mut delayObj = hal::delay::Delay::new(cp.SYST, &clocks);
 
+
+    // // Create a delay abstraction based on general-pupose 32-bit timer TIM5
+    let mut delayObj  = dp.TIM5.delay_us(&clocks);
 
     let mut device = MyDevice::from_pins(gpioc.pc13.into_push_pull_output());
     device.set_led(false);
@@ -141,7 +144,7 @@ fn main() -> ! {
     delayObj.delay_ms(100 as u32);
 
 
-    let i2c = I2c::new(dp.I2C1, (scl, sda), 57600, &clocks); //100.khz()
+    let i2c = I2c::new(dp.I2C1, (scl, sda), /*57600*/100.kHz(), &clocks); //100.khz()
     
 
     // The bus is a 'static reference -> it lives forever and references can be
@@ -149,31 +152,23 @@ fn main() -> ! {
     let bus: &'static _ = shared_bus::new_cortexm!(I2C1Bus = i2c).unwrap();
 
 
-
-    let mut boxy = Box::new(Box::new(&mut delayObj));
-
-    //TODO: FIX BAROMETER!!!
+    let mut boxy: Box<dyn embedded_hal::blocking::delay::DelayMs<u32>+ core::marker::Send> = Box::new(delayObj);
     
 
-    // let mut barometer = bmp180::BMP180BarometerThermometer::new(bus.acquire_i2c(), &mut boxy, bmp180::BMP180PressureMode::BMP180Standard);
-
+    let mut barometer = bmp180::BMP180BarometerThermometer::new(bus.acquire_i2c(), boxy , bmp180::BMP180PressureMode::BMP180Standard);
     let mut sensor = Mlx9061x::new_mlx90614(bus.acquire_i2c(), SlaveAddr::Alternative(0x5A), 5).unwrap();
 
 
-
-    // delayObj.delay_ms(100 as u32);
-
-////////////////////////////
 
     let mut txt_buff = "RTOS UART TEST\n";
 
     let main_task = Task::new().name("main").start(move |_| 
     {
 
-        Task::new().name("temp").priority(TaskPriority(2)).start(move |_| {
+        Task::new().name("temp").priority(TaskPriority(2)).stack_size(4096).start(move |_| {
             loop{
 
-                // let pressure_in_pascals: f32 = barometer.pressure_pa();
+
 
 
                 let t_obj = sensor.object1_temperature().unwrap_or(-1.0);
@@ -185,15 +180,20 @@ fn main() -> ! {
                 freertos_rust::CurrentTask::delay(Duration::ms(300));
                 let text = format!("AT:{:.2}\n",&t_a);
                 serial_writer(&mut tx, &text).unwrap();
+                freertos_rust::CurrentTask::delay(Duration::ms(300));
 
-                // let text = format!("P:{}\n",&pressure_in_pascals);
-                // serial_writer(&mut tx, &text).unwrap();
+                let pressure_in_hpa: f32 = barometer.pressure_hpa();
+                let text = format!("P:{:.2}\n",&pressure_in_hpa);
+                serial_writer(&mut tx, &text).unwrap();
+                freertos_rust::CurrentTask::delay(Duration::ms(300));
+
+                let pressure_temp_celsius: f32 = barometer.temperature_celsius();
+                let text = format!("PTC:{:.2}\n",&pressure_temp_celsius);
+                serial_writer(&mut tx, &text).unwrap();
                 freertos_rust::CurrentTask::delay(Duration::ms(300));
  
             }
         }).unwrap();
-
-
 
         Task::new().name("led").priority(TaskPriority(2)).start(move |_| {
             loop{
@@ -208,6 +208,10 @@ fn main() -> ! {
     }).unwrap();
 
     FreeRtosUtils::start_scheduler();
+
+    loop {
+        
+    }
 }
 
 #[exception]

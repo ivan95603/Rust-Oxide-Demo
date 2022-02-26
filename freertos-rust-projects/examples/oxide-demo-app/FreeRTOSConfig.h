@@ -97,8 +97,8 @@ extern void vAssertCalled( unsigned long ulLine, const char * const pcFileName )
 // #define configCPU_CLOCK_HZ				( 4200000UL ) //also systick runs at this frequency
 #define configTICK_RATE_HZ				( ( TickType_t ) 1000 ) //1000=1ms per tick, 100=10ms per tick
 #define configMAX_PRIORITIES			( 5 )
-#define configMINIMAL_STACK_SIZE		( ( unsigned short ) 80 )
-#define configTOTAL_HEAP_SIZE			( ( size_t ) ( 15 * 1024 ) ) // was 15
+#define configMINIMAL_STACK_SIZE		( ( unsigned short ) 4096 )  // was 80
+#define configTOTAL_HEAP_SIZE			( ( size_t ) ( 100 * 1024 ) ) // was 15
 #define configMAX_TASK_NAME_LEN			( 16 )
 #define configUSE_TRACE_FACILITY		1
 #define configUSE_16_BIT_TICKS			0
@@ -110,7 +110,7 @@ extern void vAssertCalled( unsigned long ulLine, const char * const pcFileName )
 #define configUSE_MALLOC_FAILED_HOOK	0 //TR
 #define configUSE_APPLICATION_TASK_TAG	0
 #define configUSE_TICKLESS_IDLE			0 //max tickless period with 16MHz sysclock = ~1sek
-#define configEXPECTED_IDLE_TIME_BEFORE_SLEEP  3 //min as ticks before geting in tickless sleep
+#define configEXPECTED_IDLE_TIME_BEFORE_SLEEP  3 //min as ticks before geting in tickless sleep   was 3
 
 //http://www.freertos.org/Configuring-a-real-time-RTOS-application-to-use-software-timers.html
 #define configUSE_TIMERS				1
@@ -150,7 +150,7 @@ to exclude the API function. */
 #define INCLUDE_vTaskPrioritySet		1
 #define INCLUDE_uxTaskPriorityGet		1
 #define INCLUDE_vTaskDelete				1
-#define INCLUDE_vTaskCleanUpResources	0
+#define INCLUDE_vTaskCleanUpResources	1   // was 0
 #define INCLUDE_vTaskSuspend			1
 #define INCLUDE_vTaskDelayUntil			1
 #define INCLUDE_vTaskDelay				1

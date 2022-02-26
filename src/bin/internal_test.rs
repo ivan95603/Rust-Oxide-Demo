@@ -67,9 +67,11 @@ fn main() -> ! {
     let dp = Peripherals::take().unwrap();
 
     let rcc = dp.RCC.constrain();
-    let clocks = rcc.cfgr.sysclk(25.mhz()).pclk1(/*(12.5).mhz()*/12500000).freeze();
+    let clocks = rcc.cfgr.sysclk(16.MHz()).pclk1(8.MHz()).freeze();
 
-    // Configure PA5 pin to blink LED
+
+
+    // Configure PC13 pin to blink LED
     let gpioc = dp.GPIOC.split();
     let mut led = gpioc.pc13.into_push_pull_output();
     let _ = led.set_high(); // Turn off
@@ -78,11 +80,11 @@ fn main() -> ! {
     cortex_m::interrupt::free(|cs| *G_LED.borrow(cs).borrow_mut() = Some(led));
 
     // Set up a timer expiring after 1s
-    let mut timer = Timer::new(dp.TIM2, &clocks).counter();
+    let mut timer = dp.TIM2.counter(&clocks);
     timer.start(1.secs()).unwrap();
 
     // Generate an interrupt when the timer expires
-    timer.listen(Event::TimeOut);
+    timer.listen(Event::Update);
 
     // Move the timer into our global storage
     cortex_m::interrupt::free(|cs| *G_TIM.borrow(cs).borrow_mut() = Some(timer));
@@ -92,7 +94,9 @@ fn main() -> ! {
         cortex_m::peripheral::NVIC::unmask(Interrupt::TIM2);
     }
 
+    #[allow(clippy::empty_loop)]
     loop {
-        wfi();
+        // Uncomment if you want to make controller sleep
+        // cortex_m::asm::wfi();
     }
 }
