@@ -13,23 +13,20 @@ freertos-rust = {path = "../freertos-rust"}
 [target.'cfg(target_arch = "arm")'.dependencies]
 cortex-m = "0.7.4"
 cortex-m-rt = {version = "0.7.1"}
+
+embedded-hal = { features = ["unproven"], version = "0.2.7" }
 stm32f4 = "0.14.0"
+stm32f4xx-hal = {version = "0.12.0", features = ["rt", "stm32f411"]}
 
+shared-bus = { version = "0.2.2", features=["cortex-m"]}
 
-
-# Example: stm32-cortex-m4-blackpill
-[target.thumbv7em-none-eabihf.dependencies]
+mlx9061x = "0.2.0"
+bmp180-nostd = { path = "../../bmp180-nostd" }
 
 panic-halt = "0.2.0"
 
-embedded-hal = { features = ["unproven"], version = "0.2.7" }
-stm32f4xx-hal = {version = "0.12.0", features = ["rt", "stm32f411"]}
-mlx9061x = "0.2.0"
-shared-bus = { version = "0.2.2", features=["cortex-m"]}
-
-rtt-target = { version =  "0.3.1", features = ["cortex-m"] }
-
-bmp180-nostd = { path = "../../bmp180-nostd" }
+# Example: stm32-cortex-m4-blackpill
+# [target.thumbv7em-none-eabihf.dependencies]
 
 [build-dependencies]
 freertos-cargo-build = {path = "../freertos-cargo-build"}
